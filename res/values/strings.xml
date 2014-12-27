@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">smarttaxi</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="Set_Position_Url">http://smarttaxi.newton-innovations.kz/php/SetDriverPosition.php</string>
+	<string name="Get_Position_Url">http://smarttaxi.newton-innovations.kz/php/getGPS.php</string>
+    
+</resources>

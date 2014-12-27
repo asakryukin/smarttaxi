@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+    
+	<LinearLayout
+        android:id="@+id/ll_driver"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical" >
+
+        <ru.yandex.yandexmapkit.MapView
+            android:id="@+id/driver_map"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:apiKey="HDdbq26FnjGrQKl7-656aqEkEA73W6VhNWGfO7nu0wqLkqIrJp4KL4XaC5qqrxeJEwlJkF~bWIiJiztLRnLp6Tey5oMo8SGxGSC22O5VMAI=" >
+        </ru.yandex.yandexmapkit.MapView>
+
+    </LinearLayout>
+
+	<LinearLayout
+	    android:id="@+id/driver_map_decision"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_weight="1"
+	    android:orientation="horizontal" >
+
+		<Button
+		    android:id="@+id/driver_map_ok"
+		    android:layout_width="wrap_content"
+		    android:layout_height="100dp"
+		    android:text="Accept" />
+
+		<Button
+		    android:id="@+id/driver_map_no"
+		    android:layout_width="wrap_content"
+		    android:layout_height="100dp"
+		    android:text="Cancel" />
+
+	</LinearLayout>
+    
+</LinearLayout>
