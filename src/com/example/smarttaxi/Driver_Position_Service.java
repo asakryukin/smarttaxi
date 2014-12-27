@@ -20,6 +20,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.IBinder;
+import android.text.format.Time;
 import android.util.Log;
 
 public class Driver_Position_Service extends Service {
@@ -27,6 +28,10 @@ public class Driver_Position_Service extends Service {
 	private GetStatus gs;
 	private Position_Request pr;
 	final static String MY_ACTION = "POSITIONING";
+	private long order_id;
+	private int status;
+	private GPSTracker tracker;
+	private Do_Service_Staff dsf;
 	@Override
 	public IBinder onBind(Intent intent) {
 		// TODO Auto-generated method stub
@@ -43,75 +48,128 @@ public class Driver_Position_Service extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		// TODO Auto-generated method stub
-		
-		int status=0;
-		long order_id=intent.getExtras().getLong("id");
+		tracker = new GPSTracker(this);
+		status=0;
+		order_id=intent.getExtras().getLong("id");
 		gs=new GetStatus();
+		dsf=new Do_Service_Staff();
+		dsf.execute(0);
 		
-		JSONObject js=new JSONObject();
-		JSONObject position=new JSONObject();
-		try {
-			js.put("order_uuid", order_id);
-			status=gs.execute(js).get().getInt("order_status");
+		
+		return START_STICKY;
+	}
+	
+	@Override
+	public void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		
+	}
+	
+	
+	private class Do_Service_Staff extends AsyncTask<Integer, JSONObject, JSONObject>{
+		Time now;
+		long curt=0;
+		@Override
+		protected void onPreExecute() {
+			// TODO Auto-generated method stub
+			super.onPreExecute();
+			now = new Time();
+			now.setToNow();
+			curt=now.toMillis(false);
+			gs=new GetStatus();
+			JSONObject js=new JSONObject();
+			try {
+				js.put("order_uuid", order_id);
+				status=gs.execute(js).get().getInt("order_status");
+				Log.d("mylog", "PRE_STATUS:"+status);
+				
+			} catch (JSONException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			Log.d("mylog", "PRE_STATUS2:"+status);
+			if (tracker.canGetLocation() == false) {
+		        tracker.showSettingsAlert();
+		    } else {
+		        latitude = tracker.getLatitude();
+		        longitude = tracker.getLongitude();
+		    }
+		}
+		@Override
+		protected JSONObject doInBackground(Integer... params) {
+			// TODO Auto-generated method stub
 			
 			
-		} catch (JSONException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
+			
+			//while (status<2)
+			{
+			
+		    
+		    Log.d("mylog", "SerLat:"+latitude+" :"+longitude);
+			
+			
+			
+			}
+			/*
+			try {
+			//	Thread.sleep(3000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}*/
+			while (now.toMillis(false)-curt<3000){
+				now.setToNow();
+			}
+			return null;
 		}
 		
-		while (status<2){
-		GPSTracker tracker = new GPSTracker(this);
-	    if (tracker.canGetLocation() == false) {
-	        tracker.showSettingsAlert();
-	    } else {
-	        latitude = tracker.getLatitude();
-	        longitude = tracker.getLongitude();
-	    }
-	    Log.d("mylog", "SerLat:"+latitude+" :"+longitude);
-		
-		gs=new GetStatus();
-		try {
-			Thread.sleep(3000);
-			status=gs.execute(js).get().getInt("order_status");
-			Log.d("mylog", "SENDING");
+		@Override
+		protected void onPostExecute(JSONObject result) {
+			// TODO Auto-generated method stub
+			super.onPostExecute(result);
 			Intent broad=new Intent();
 			broad.setAction(MY_ACTION);
 			broad.putExtra("status", status);
 			broad.putExtra("latitude", latitude);
 			broad.putExtra("longitude", longitude);
 			sendBroadcast(broad);
-			Log.d("mylog", "DONE!");
+			
+			JSONObject position=new JSONObject();
 			position=new JSONObject();
-			position.put("driver_uuid", order_id);
-			position.put("driver_lat", latitude.toString());
-			position.put("driver_lon", longitude.toString());
-			pr= new Position_Request(getResources().getString(R.string.Set_Position_Url));
-			pr.execute(position);
-			pr = new Position_Request(getResources().getString(R.string.Get_Position_Url));
-			pr.execute(position);
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
+			try {
+				position.put("driver_uuid", order_id);
+				position.put("driver_lat", latitude.toString());
+				position.put("driver_lon", longitude.toString());
+				pr= new Position_Request(getResources().getString(R.string.Set_Position_Url));
+				pr.execute(position).get();
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			Log.d("mylog", "POSTEXEC");
+			if (status<2){
+				dsf=new Do_Service_Staff();
+				dsf.execute(0);
+			}
 		}
 		
-		}
-		
-		return START_STICKY;
 	}
-	
 	
 	private class GetStatus extends AsyncTask<JSONObject, Integer, JSONObject>{
 		private StringBuilder builder;
@@ -134,7 +192,7 @@ public class Driver_Position_Service extends Service {
 		        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 				response = httpclient.execute(httppost);
 				url_response=EntityUtils.toString(response.getEntity());
-				Log.d("mylog", url_response);
+				Log.d("mylog", "ORDER_STATUS:"+url_response);
 				json=new JSONObject(url_response);
 				
 				//Log.d("mylog", response.toString());

@@ -41,6 +41,7 @@ public class Driver_Map extends Activity implements OnClickListener {
 	private Button ok,no;
 	private LinearLayout ll;
 	private int back=1;
+	private Intent service;
 
 	private BroadcastReceiver br;
 	private String android_id;
@@ -119,12 +120,31 @@ public class Driver_Map extends Activity implements OnClickListener {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				// TODO Auto-generated method stub
+				
+				if (intent.getExtras()!=null){
+					if (intent.getIntExtra("status", 0)>0){
 				Log.d("mylog", "RECEIved!");
+				
+				if (intent.getIntExtra("status", 0)<2){
+					//startService(service);
+					overlay.removeOverlayItem(driver);
+					mOverlayManager.removeOverlay(overlay);
+					gp=new GeoPoint(intent.getDoubleExtra("latitude", 0), intent.getDoubleExtra("longitude", 0));
+					driver = new OverlayItem(gp,getResources().getDrawable(R.drawable.ic_launcher));
+					// ��������� ������ �� ����
+					overlay.addOverlayItem(driver);
+					mOverlayManager.addOverlay(overlay);
+				}else {
+					finish();
+				}
+				}
+				}
 			}
 		};
 		IntentFilter intentFilter = new IntentFilter();
 	      intentFilter.addAction(Driver_Position_Service.MY_ACTION);
-	      registerReceiver(br, intentFilter);
+		registerReceiver(br, intentFilter);
+	      
 	}
 	
 	@Override
@@ -149,9 +169,10 @@ public class Driver_Map extends Activity implements OnClickListener {
 				if (res.getInt("success")==1){
 					ll.setVisibility(ll.GONE);
 					back=0;
-					Intent service=new Intent(getApplicationContext(), Driver_Position_Service.class);
+					service=new Intent(getApplicationContext(), Driver_Position_Service.class);
 					service.putExtra("id", id);
 					startService(service);
+					
 				}
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block

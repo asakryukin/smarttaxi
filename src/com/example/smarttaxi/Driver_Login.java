@@ -21,7 +21,7 @@ import android.widget.Toast;
 public class Driver_Login extends Activity implements OnClickListener {
 	Button btn_cancel,btn_log;
 	private String android_id; 
-	private EditText phone;
+	private EditText phone,login,pass;
 	private JSONObject result;
 	private SQLiteDatabase myDB= null;
 	private Cursor c;
@@ -39,6 +39,9 @@ public class Driver_Login extends Activity implements OnClickListener {
 		btn_cancel.setOnClickListener(this);
 		btn_log.setOnClickListener(this);
 		phone=(EditText) findViewById(R.id.driver_login_phone);
+		login=(EditText) findViewById(R.id.driver_login_name);
+		pass=(EditText) findViewById(R.id.driver_login_pass);
+		
 	}
 	@Override
 	public void onClick(View v) {
@@ -56,6 +59,9 @@ public class Driver_Login extends Activity implements OnClickListener {
 				jo.put("user_uuid", android_id);
 				jo.put("user_role", "2");
 				jo.put("user_phone", phone.getText().toString());
+				//jo.put("user_role", "3");
+				//jo.put("driver_uuid", "1");
+				//jo.put("driver_password", "123456");
 				result=login.execute(jo).get();
 				Log.d("mylog", "RRR:"+result.getInt("success"));
 				Log.d("mylog", result.toString());
